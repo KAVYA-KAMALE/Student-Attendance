@@ -1,0 +1,31 @@
+.export-monthly-data-container {
+    padding: 20px;
+}
+
+.date-form {
+    margin-bottom: 20px;
+}
+
+.date-form label {
+    margin-right: 10px;
+}
+
+.date-form input {
+    margin-right: 20px;
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.attendance-table th, .attendance-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.attendance-table th {
+    background-color: #f2f2f2;
+}
