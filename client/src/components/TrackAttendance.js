@@ -28,12 +28,12 @@ const TrackAttendance = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         let query = searchQuery;
-        
+
         // Use selectedDate for date search
         if (searchColumn === 'date' && selectedDate) {
             query = selectedDate;
         }
-    
+
         if (query.trim()) {
             const filteredRecords = attendanceRecords.filter(record => {
                 switch (searchColumn) {
@@ -42,10 +42,9 @@ const TrackAttendance = () => {
                     case 'rollNo':
                         return record.rollNo && record.rollNo.includes(query);
                     case 'date':
-                        // Convert both input and record date to a standard format
                         const inputDate = new Date(query).toLocaleDateString();  // Format as mm/dd/yyyy
                         const recordDate = new Date(record.date).toLocaleDateString();  // Also format as mm/dd/yyyy
-                        
+
                         return recordDate === inputDate;  // Compare formatted dates
                     case 'meal':
                         const mealType = getMealType(record.time);
@@ -59,7 +58,7 @@ const TrackAttendance = () => {
             fetchAttendanceRecords(); // Reset if search query is empty
         }
     };
-    
+
     // Handle clearing the search (back button functionality)
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -86,20 +85,18 @@ const TrackAttendance = () => {
 
     // Determine the meal based on the time
     const getMealType = (time) => {
-        // Extract hours and minutes from time string using a regex
         const timeParts = time.match(/(\d{1,2}):(\d{2}):\d{2} (\w{2})/);
         if (!timeParts) return 'No Meal';
-    
+
         let hours = parseInt(timeParts[1]);
         const minutes = parseInt(timeParts[2]);
         const period = timeParts[3]; // AM or PM
-    
-        // Convert to 24-hour format
+
         if (period === 'PM' && hours < 12) hours += 12;
         if (period === 'AM' && hours === 12) hours = 0;
-    
+
         const totalMinutes = (hours * 60) + minutes;
-    
+
         if (totalMinutes >= 450 && totalMinutes < 570) { // Breakfast 7:30 AM to 9:30 AM
             return 'Breakfast';
         } else if (totalMinutes >= 720 && totalMinutes < 840) { // Lunch 12:00 PM to 2:00 PM
@@ -111,8 +108,32 @@ const TrackAttendance = () => {
         } else {
             return 'No Meal';
         }
-    };    
-    
+    };
+
+    // Get Meal Status based on previous statuses and current meal
+    const getMealStatus = (record, mealType) => {
+        const currentMealType = getMealType(record.time);
+
+        // Check for previous meal statuses
+        let breakfastStatus = record.breakfastStatus || 'A'; // Default to A if not set
+        let lunchStatus = record.lunchStatus || 'A'; // Default to A if not set
+        let snacksStatus = record.snacksStatus || 'A'; // Default to A if not set
+        let dinnerStatus = record.dinnerStatus || 'A'; // Default to A if not set
+
+        switch (mealType) {
+            case 'Breakfast':
+                return currentMealType === 'Breakfast' ? 'P' : breakfastStatus; // 'P' if Breakfast, else keep previous status
+            case 'Lunch':
+                return currentMealType === 'Lunch' ? 'P' : lunchStatus;      // 'P' if Lunch, else keep previous status
+            case 'Snacks':
+                return currentMealType === 'Snacks' ? 'P' : snacksStatus;     // 'P' if Snacks, else keep previous status
+            case 'Dinner':
+                return currentMealType === 'Dinner' ? 'P' : dinnerStatus;     // 'P' if Dinner, else keep previous status
+            default:
+                return 'No Meal';
+        }
+    };
+
     const groupedRecords = groupByDate(attendanceRecords);
 
     return (
@@ -170,7 +191,10 @@ const TrackAttendance = () => {
                                     <th>Roll No</th>
                                     <th>Time</th>
                                     <th>Meal</th>
-                                    <th>Status</th>
+                                    <th>Breakfast Status</th>
+                                    <th>Lunch Status</th>
+                                    <th>Snacks Status</th>
+                                    <th>Dinner Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -180,7 +204,10 @@ const TrackAttendance = () => {
                                         <td>{record.rollNo}</td>
                                         <td>{record.time}</td>
                                         <td>{getMealType(record.time)}</td>
-                                        <td>{record.status}</td>
+                                        <td>{getMealStatus(record, 'Breakfast')}</td>
+                                        <td>{getMealStatus(record, 'Lunch')}</td>
+                                        <td>{getMealStatus(record, 'Snacks')}</td>
+                                        <td>{getMealStatus(record, 'Dinner')}</td>
                                     </tr>
                                 ))}
                             </tbody>
